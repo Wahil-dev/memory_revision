@@ -1,5 +1,6 @@
 <?php
-    require_once("./classes/Card.php");
+    require "../autoload.php";
+    use Memory\Card;
 
     $pairs = "";
     $pairsErr = "";
@@ -20,7 +21,5 @@
             exit();
         }
         
-    } else {
-        echo 4444444444444;
     }
 

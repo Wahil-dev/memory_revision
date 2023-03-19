@@ -1,10 +1,10 @@
 <?php 
-    require_once("inc/classes/Card.php");
+    require "autoload.php";
     require_once("inc/head.php");
+    use Memory\Card;
 ?>
 
     <?php if(!isset($_SESSION["gameStarted"])) :?>
-
         <section class="content">
             <form action="inc/b_game.php" method="post">
                 <select name="pairs" id="pairs">

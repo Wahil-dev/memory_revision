@@ -1,5 +1,6 @@
 <?php
-    require_once("Bdd.php");
+    namespace Memory;
+    
     class Card {
         private $id_card;
         private $path_of_img = "assets/img/";
@@ -83,6 +84,7 @@
             for($id = 1; $id < $num_of_card*2+1; $id++) {
                 array_push(self::$list_of_cards, new Card($id));
             }
+            $_SESSION["list_of_cards"] = serialize(self::$list_of_cards);
             //Partager les images a toutes les cartes
             self::setImgFaceUpToAllCard();
         }
@@ -93,13 +95,7 @@
         }
 
         public static function getListOfCards() {
-            if(!isset($_SESSION["list_of_cards"])) {
-                shuffle(self::$list_of_cards);
-                $_SESSION["list_of_cards"] = serialize(self::$list_of_cards);
-            }
-
             self::$list_of_cards = unserialize($_SESSION["list_of_cards"]);
-            var_dump(self::$list_of_cards);
             return self::$list_of_cards;
         }
 

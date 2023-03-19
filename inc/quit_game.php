@@ -1,5 +1,6 @@
 <?php 
-    require_once("./classes/Card.php");
-    
+    require "../autoload.php";
+    use Memory\Card;
+
     Card::quitGame();
 ?>
