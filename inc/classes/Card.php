@@ -9,7 +9,7 @@
         private $state = false;
         private $completed = false;
         private static $list_of_name_card = ["dargon-ball-1.jpg", "dargon-ball-2.jpg", "dargon-ball-3.jpg", "dargon-ball-4.jpg", "dargon-ball-5.jpg", "dargon-ball-6.jpg", "dargon-ball-7.jpg", "dargon-ball-8.jpg", "dargon-ball-9.jpg", "dargon-ball-10.jpg", "dargon-ball-11.jpg", "dargon-ball-12.jpg"];    
-        private static $list_of_cards = [];
+        private static $list_of_cards;
 
         public function __construct($id_card)
         {
@@ -81,12 +81,17 @@
 
         /*--------------------- Static Methods ------------------- */
         public static function createCards($num_of_card) {
+            $cards = [];
             for($id = 1; $id < $num_of_card*2+1; $id++) {
-                array_push(self::$list_of_cards, new Card($id));
+                array_push($cards, new Card($id));
             }
-            $_SESSION["list_of_cards"] = serialize(self::$list_of_cards);
+
             //Partager les images a toutes les cartes
-            self::setImgFaceUpToAllCard();
+            $random_cards = self::setImgFaceUpToAllCard($cards);
+            shuffle($random_cards);
+
+            //var_dump($random_cards);
+            self::updateListOfCards($random_cards);
         }
         
         public static function getListOfNameCard()
@@ -95,8 +100,8 @@
         }
 
         public static function getListOfCards() {
-            self::$list_of_cards = unserialize($_SESSION["list_of_cards"]);
-            return self::$list_of_cards;
+            $cards = unserialize($_SESSION["list_of_cards"]);
+            return $cards;
         }
 
         public static function setStateById($card_id) {
@@ -115,8 +120,7 @@
             $_SESSION["list_of_cards"] = serialize($cards);
         }
 
-        public static function setImgFaceUpToAllCard() {
-            $cards = self::getListOfCards();
+        public static function setImgFaceUpToAllCard($cards) {
             $half_of_list_cards = count((array)$cards) / 2;
             $new_list = [];
             for($i = 0; $i<$half_of_list_cards; $i++) {
@@ -129,7 +133,8 @@
                 array_push($new_list, $cards[$j]);
                 $i++;
             }
-            self::updateListOfCards($new_list);
+            //var_dump($new_list);
+            return $new_list;
         }
 
         public static function displayCards() {?>
