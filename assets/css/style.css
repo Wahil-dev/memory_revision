@@ -8,6 +8,10 @@
 a {text-decoration: none;}
 li {list-style: none;}
 
+.disabled {
+    cursor: not-allowed !important;
+}
+
 .flex-r {
     display: flex;
     flex-wrap: wrap;

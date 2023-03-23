@@ -81,6 +81,7 @@
 
         /*--------------------- Static Methods ------------------- */
         public static function createCards($num_of_card) {
+            $_SESSION["cardClicked"] = [];
             $cards = [];
             for($id = 1; $id < $num_of_card*2+1; $id++) {
                 array_push($cards, new Card($id));
@@ -109,11 +110,33 @@
             $new_list = [];
             foreach((array)$cards as $card) {
                 if($card->getIdCard() == $card_id) {
-                    $card->setState(true);
+                    $card->setState("disabled");
+                    //on peut pas clicker sur la meme carte deux fois
+                    if(count($_SESSION["cardClicked"]) > 0) {
+                        if(unserialize($_SESSION["cardClicked"][0])->getIdCard() != $card->getIdCard()) {
+                            array_push($_SESSION["cardClicked"], serialize($card));
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        array_push($_SESSION["cardClicked"], serialize($card));
+                    }
                 }
                 array_push($new_list, $card);
             }
             self::updateListOfCards($new_list);
+            
+            if(count($_SESSION["cardClicked"]) >= 2) {
+                //Vérifier si ouvre 2 carte resemble
+                if(self::checkIfTwoCardsFind()) {
+                    self::updateTwoCardsToCompleted(unserialize($_SESSION["cardClicked"][0])->getImgFaceUp());
+                    $_SESSION["cardClicked"] =  [];
+                } else {
+                    array_shift($_SESSION["cardClicked"]);
+                    self::setStatCardsToFalse($card_id);//sauf la carte clicker ce fois ci
+                    return false;
+                }
+            } 
         }
 
         public static function updateListOfCards($cards) {
@@ -146,14 +169,14 @@
                     <?php foreach(self::getListOfCards() as $card) :?>
                         <?php if($card->getState()) :?>
                             <div class="card">
-                                <button type="submit" class="card-btn" name="card_id" value="<?= $card->getIdCard()?>">
+                                <button type="submit" class="card-btn <?php echo $card->getState()?>" name="card_id" value="<?= $card->getIdCard()?>" <?php echo $card->getState()?>>
                                     <img src="<?= $card->getImgFaceUp()?>" alt="<?= $card->getImgFaceUp()?>">
                                 </button>
                             </div>
                         <?php else :?>
                             <div class="card">
-                                <button type="submit" class="card-btn" name="card_id" value="<?= $card->getIdCard()?>">
-                                    <img src="<?= $card->getImgFaceDown()?>" alt="<?= $card->getImgFaceDown()?>">
+                                <button type="submit" class="card-btn <?php echo $card->getState()?>" name="card_id" value="<?= $card->getIdCard()?>" <?php echo $card->getState()?>>
+                                    <img src="<?= $card->getImgFaceDown()?>" alt="<?php echo  $card->getImgFaceDown()?>">
                                 </button>
                             </div>
                         <?php endif ?>
@@ -162,9 +185,48 @@
             </section>
     <?php }
 
+        private static function checkIfTwoCardsFind() {
+            $cardClicked = $_SESSION["cardClicked"];
+            var_dump($cardClicked);
+            $card_1 = unserialize($cardClicked[0]);
+            $card_2 = unserialize($cardClicked[1]);
+            if($card_1->getImgFaceUp() == $card_2->getImgFaceUp()) {
+                return true;
+            } 
+            return false;
+        }
+
+        private static function setStatCardsToFalse($card_id) {
+            $cards = self::getListOfCards();
+            $new_list = [];
+            foreach($cards as $card) {
+                if($card->getCompleted() != "disabled") {
+                    $card->setState(false);
+                }
+                if($card->getIdCard() == $card_id) {
+                    $card->setState("disabled");
+                }
+                array_push($new_list, $card);
+            }
+            self::updateListOfCards($new_list);
+        }
+
+        private static function updateTwoCardsToCompleted($img_of_card) {
+            $cards = self::getListOfCards();
+            $new_list = [];
+            foreach($cards as $card) {
+                if($card->getImgFaceUp() == $img_of_card) {
+                    $card->setCompleted("disabled");
+                }
+                array_push($new_list, $card);
+            }
+            self::updateListOfCards($new_list);
+        }
+
         public static function quitGame() {
             unset($_SESSION["gameStarted"]);
             unset($_SESSION["list_of_cards"]);
+            unset($_SESSION["cardClicked"]);
             header("location: ../game.php");
             exit();
         }
