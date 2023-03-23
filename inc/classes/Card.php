@@ -80,10 +80,12 @@
         }
 
         /*--------------------- Static Methods ------------------- */
-        public static function createCards($num_of_card) {
+        public static function createCards($pairs) {
             $_SESSION["cardClicked"] = [];
+            $_SESSION["coup"] = 0;
+
             $cards = [];
-            for($id = 1; $id < $num_of_card*2+1; $id++) {
+            for($id = 1; $id < $pairs*2+1; $id++) {
                 array_push($cards, new Card($id));
             }
 
@@ -106,6 +108,7 @@
         }
 
         public static function setStateById($card_id) {
+            $_SESSION["coup"] ++;
             $cards = self::getListOfCards();
             $new_list = [];
             foreach((array)$cards as $card) {
@@ -137,6 +140,11 @@
                     return false;
                 }
             } 
+
+            if(self::isWin()) {
+                $_SESSION["win"] = true;
+                $_SESSION["score"] = $_SESSION["coup"] / $_SESSION["pairs"];
+            }
         }
 
         public static function updateListOfCards($cards) {
@@ -162,26 +170,36 @@
 
         public static function displayCards() {?>
             <section class="content">
-                <div class="menu-game">
-                    <a href="inc/quit_game.php">Quit Partie</a>
-                </div>
-                <form action="inc/b_game.php" method="post" class="form-cards flex-r">
-                    <?php foreach(self::getListOfCards() as $card) :?>
-                        <?php if($card->getState()) :?>
-                            <div class="card">
-                                <button type="submit" class="card-btn <?php echo $card->getState()?>" name="card_id" value="<?= $card->getIdCard()?>" <?php echo $card->getState()?>>
-                                    <img src="<?= $card->getImgFaceUp()?>" alt="<?= $card->getImgFaceUp()?>">
-                                </button>
-                            </div>
-                        <?php else :?>
-                            <div class="card">
-                                <button type="submit" class="card-btn <?php echo $card->getState()?>" name="card_id" value="<?= $card->getIdCard()?>" <?php echo $card->getState()?>>
-                                    <img src="<?= $card->getImgFaceDown()?>" alt="<?php echo  $card->getImgFaceDown()?>">
-                                </button>
-                            </div>
-                        <?php endif ?>
-                    <?php endforeach ?>
-                </form>
+                <?php if(!isset($_SESSION["win"])) : ?>
+                    <div class="menu-game">
+                        <a href="inc/quit_game.php">Quit Partie</a>
+                        <p>Click <span><?= $_SESSION["coup"] ?></span></p>
+                    </div>
+                    <form action="inc/b_game.php" method="post" class="form-cards flex-r">
+                        <?php foreach(self::getListOfCards() as $card) :?>
+                            <?php if($card->getState()) :?>
+                                <div class="card">
+                                    <button type="submit" class="card-btn <?php echo $card->getState()?>" name="card_id" value="<?= $card->getIdCard()?>" <?php echo $card->getState()?>>
+                                        <img src="<?= $card->getImgFaceUp()?>" alt="<?= $card->getImgFaceUp()?>">
+                                    </button>
+                                </div>
+                            <?php else :?>
+                                <div class="card">
+                                    <button type="submit" class="card-btn <?php echo $card->getState()?>" name="card_id" value="<?= $card->getIdCard()?>" <?php echo $card->getState()?>>
+                                        <img src="<?= $card->getImgFaceDown()?>" alt="<?php echo  $card->getImgFaceDown()?>">
+                                    </button>
+                                </div>
+                            <?php endif ?>
+                        <?php endforeach ?>
+                    </form>
+                <?php else :?>
+                    <div class="win-box">
+                        <h2>Vous avez gagner !</h2>
+                        <p>Score <span><?= $_SESSION["score"] ?></span></p>
+                        <p>Click <span><?= $_SESSION["coup"] ?></span></p>
+                        <a href="inc/quit_game.php">nouveau partie</a>
+                    </div>
+                <?php endif ?>
             </section>
     <?php }
 
@@ -223,10 +241,25 @@
             self::updateListOfCards($new_list);
         }
 
+        private static function isWin() {
+            $cards = self::getListOfCards();
+            $is_win = true;
+            foreach($cards as $card) {
+                if($card->getCompleted() == false) {
+                    $is_win = false;
+                }
+            }
+            return $is_win;
+        }
+
         public static function quitGame() {
             unset($_SESSION["gameStarted"]);
             unset($_SESSION["list_of_cards"]);
             unset($_SESSION["cardClicked"]);
+            unset($_SESSION["win"]);
+            unset($_SESSION["pairs"]);
+            unset($_SESSION["score"]);
+            unset($_SESSION["coup"]);
             header("location: ../game.php");
             exit();
         }

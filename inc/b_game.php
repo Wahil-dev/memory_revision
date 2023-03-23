@@ -9,6 +9,7 @@
         if(isset($_POST["pairs"])) {
             $_SESSION["gameStarted"] = true;
             $_SESSION["list_of_cards"] = "";
+            $_SESSION["pairs"] = $_POST["pairs"];
             Card::CreateCards($_POST["pairs"]);
         }
 
